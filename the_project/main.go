@@ -10,7 +10,8 @@ import (
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
+	w.Header().Set("Content-Type", "text/html")
+	fmt.Fprintf(w, "<h1>Hello from Kubernetes!</h1><p>This is a simple HTML page served by the project.</p>")
 }
 
 func main() {

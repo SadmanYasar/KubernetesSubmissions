@@ -17,7 +17,7 @@ spec:
       containers:
       - name: the-project
         image: sadmanyasar17/the_project:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
           name: http
