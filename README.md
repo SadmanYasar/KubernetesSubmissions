@@ -11,3 +11,5 @@
 - [1.5.](https://github.com/SadmanYasar/KubernetesSubmissions/tree/1.5/the_project)
 - [1.6.](https://github.com/SadmanYasar/KubernetesSubmissions/tree/1.6/the_project)
 - [1.7.](https://github.com/SadmanYasar/KubernetesSubmissions/tree/1.7/the_project)
+- [1.8.](https://github.com/SadmanYasar/KubernetesSubmissions/tree/1.8/the_project)
+- [1.9.](https://github.com/SadmanYasar/KubernetesSubmissions/tree/1.9/the_project)
