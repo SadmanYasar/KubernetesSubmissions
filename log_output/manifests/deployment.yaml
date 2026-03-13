@@ -12,6 +12,39 @@ spec:
       labels:
         app: hashgenerator
     spec:
+      volumes:
+        - name: shared-logs
+          emptyDir: {}
       containers:
-        - name: hashgenerator
-          image: sadmanyasar17/devops-k8s-ex-1:v2
+        - name: writer
+          image: sadmanyasar17/log-output-writer:v1
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "50m"
+            limits:
+              memory: "64Mi"
+              cpu: "100m"
+          volumeMounts:
+            - name: shared-logs
+              mountPath: /usr/src/app/shared
+        - name: reader
+          image: sadmanyasar17/log-output-reader:v1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: PORT
+              value: "3000"
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "50m"
+            limits:
+              memory: "64Mi"
+              cpu: "100m"
+          volumeMounts:
+            - name: shared-logs
+              mountPath: /usr/src/app/shared

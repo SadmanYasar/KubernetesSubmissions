@@ -1,25 +1,20 @@
-const { randomUUID } = require('crypto');
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 
-// Generate a random string (UUID) on startup and store it in memory
-const randomString = randomUUID();
 const port = process.env.PORT || 3000;
-
-const printWithTimestamp = () => {
-  const timestamp = new Date().toISOString();
-  console.log(`${timestamp}: ${randomString}`);
-  return `${timestamp}: ${randomString}`;
-}
-
-// Output immediately and then every 5 seconds
-printWithTimestamp();
-setInterval(printWithTimestamp, 5000);
+const logFile = path.join('/usr/src/app/shared', 'log.txt');
 
 const server = http.createServer((req, res) => {
   if (req.url === '/') {
-    const status = printWithTimestamp();
+    if (!fs.existsSync(logFile)) {
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      res.end('Log file not ready yet — writer is still starting up.\n');
+      return;
+    }
+    const content = fs.readFileSync(logFile, 'utf8');
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end(`${status}`);
+    res.end(content);
   } else {
     res.writeHead(404);
     res.end();
@@ -27,5 +22,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(port, () => {
-  console.log(`Server started in port ${port}`);
+  console.log(`Reader server started on port ${port}`);
 });
