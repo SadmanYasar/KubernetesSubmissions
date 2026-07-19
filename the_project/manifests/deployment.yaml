@@ -14,13 +14,20 @@ spec:
       labels:
         app: the-project
     spec:
+      volumes:
+        - name: project-storage
+          persistentVolumeClaim:
+            claimName: project-pvc
       containers:
       - name: the-project
         image: sadmanyasar17/the_project:latest
-        imagePullPolicy: Always
+        imagePullPolicy: Never
         ports:
         - containerPort: 8080
           name: http
+        volumeMounts:
+          - name: project-storage
+            mountPath: /app/shared
         env:
         - name: PORT
           value: "8080"
