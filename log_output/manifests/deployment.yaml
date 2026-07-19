@@ -14,11 +14,12 @@ spec:
     spec:
       volumes:
         - name: shared-logs
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: shared-logs-pvc
       containers:
         - name: writer
           image: sadmanyasar17/log-output-writer:v1
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           resources:
             requests:
               memory: "32Mi"
@@ -31,7 +32,7 @@ spec:
               mountPath: /usr/src/app/shared
         - name: reader
           image: sadmanyasar17/log-output-reader:v1
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           ports:
             - containerPort: 3000
               name: http
