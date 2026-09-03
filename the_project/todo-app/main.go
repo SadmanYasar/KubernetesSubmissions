@@ -324,7 +324,7 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-	fmt.Printf("Starting server in port %s\n", port)
+	fmt.Printf("Todo-app (frontend) started on port %s\n", port)
 
 	http.HandleFunc("/", handler)
 	http.HandleFunc("/image.jpg", imageHandler)
@@ -332,5 +332,3 @@ func main() {
 	http.HandleFunc("/healthz", healthHandler)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
-
-
