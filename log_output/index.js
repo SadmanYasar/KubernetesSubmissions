@@ -3,10 +3,26 @@ const fs = require('fs');
 const path = require('path');
 
 const port = process.env.PORT || 3000;
+const pingPongUrl = process.env.PING_PONG_URL || 'http://ping-pong-svc:80/pings';
 const logFile = path.join('/usr/src/app/shared', 'log.txt');
-const pongsFile = path.join('/usr/src/app/shared', 'pongs.txt');
 
-const server = http.createServer((req, res) => {
+async function getPongs() {
+  try {
+    const res = await fetch(pingPongUrl);
+    if (!res.ok) {
+      console.error(`Ping-pong service responded with status: ${res.status}`);
+      return 0;
+    }
+    const text = await res.text();
+    const match = text.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 0;
+  } catch (err) {
+    console.error(`Error connecting to ping-pong service at ${pingPongUrl}:`, err.message);
+    return 0;
+  }
+}
+
+const server = http.createServer(async (req, res) => {
   if (req.url === '/') {
     if (!fs.existsSync(logFile)) {
       res.writeHead(200, { 'Content-Type': 'text/plain' });
@@ -17,10 +33,7 @@ const server = http.createServer((req, res) => {
     const lines = content.trim().split('\n');
     const lastLine = lines[lines.length - 1];
 
-    let pongs = 0;
-    if (fs.existsSync(pongsFile)) {
-      pongs = parseInt(fs.readFileSync(pongsFile, 'utf8').trim(), 10) || 0;
-    }
+    const pongs = await getPongs();
 
     // Ensure the lastLine ends with a period if it doesn't already
     const formattedLastLine = lastLine.endsWith('.') ? lastLine : `${lastLine}.`;
