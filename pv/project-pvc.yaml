@@ -2,6 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: project-pvc
+  namespace: project
 spec:
   storageClassName: my-project-pv
   accessModes:
