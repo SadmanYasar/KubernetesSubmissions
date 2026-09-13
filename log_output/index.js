@@ -35,11 +35,21 @@ const server = http.createServer(async (req, res) => {
 
     const pongs = await getPongs();
 
+    // Read information.txt mapped via volume
+    const configFilePath = path.join('/usr/src/app/config', 'information.txt');
+    let fileContent = '';
+    if (fs.existsSync(configFilePath)) {
+      fileContent = fs.readFileSync(configFilePath, 'utf8').trim();
+    }
+
+    // Read env variable MESSAGE
+    const messageEnv = process.env.MESSAGE || '';
+
     // Ensure the lastLine ends with a period if it doesn't already
     const formattedLastLine = lastLine.endsWith('.') ? lastLine : `${lastLine}.`;
 
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end(`${formattedLastLine}\nPing / Pongs: ${pongs}\n`);
+    res.end(`file content: ${fileContent}\nenv variable: MESSAGE=${messageEnv}\n${formattedLastLine}\nPing / Pongs: ${pongs}\n`);
   } else {
     res.writeHead(404);
     res.end();
