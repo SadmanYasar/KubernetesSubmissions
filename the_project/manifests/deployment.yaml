@@ -31,7 +31,20 @@ spec:
             mountPath: /app/shared
         env:
         - name: PORT
-          value: "8080"
+          valueFrom:
+            configMapKeyRef:
+              name: project-configmap
+              key: PORT
+        - name: IMAGE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: project-configmap
+              key: IMAGE_URL
+        - name: IMAGE_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: project-configmap
+              key: IMAGE_PATH
         resources:
           limits:
             memory: "128Mi"
@@ -78,7 +91,10 @@ spec:
           name: http
         env:
         - name: PORT
-          value: "8081"
+          valueFrom:
+            configMapKeyRef:
+              name: project-configmap
+              key: BACKEND_PORT
         resources:
           limits:
             memory: "128Mi"

@@ -11,13 +11,24 @@ import (
 	"time"
 )
 
-var (
-	imagePath = "/app/shared/image.jpg"
-	mu        sync.Mutex
-)
+var mu sync.Mutex
+
+func getImagePath() string {
+	if path := os.Getenv("IMAGE_PATH"); path != "" {
+		return path
+	}
+	return "/app/shared/image.jpg"
+}
+
+func getImageUrl() string {
+	if url := os.Getenv("IMAGE_URL"); url != "" {
+		return url
+	}
+	return "https://picsum.photos/1200"
+}
 
 func downloadImage(path string) error {
-	resp, err := http.Get("https://picsum.photos/1200")
+	resp, err := http.Get(getImageUrl())
 	if err != nil {
 		return err
 	}
@@ -43,15 +54,16 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	info, err := os.Stat(imagePath)
+	imgPath := getImagePath()
+	info, err := os.Stat(imgPath)
 	if os.IsNotExist(err) {
 		log.Println("Image cache not found. Downloading image...")
-		if err := downloadImage(imagePath); err != nil {
+		if err := downloadImage(imgPath); err != nil {
 			log.Printf("Failed to download image: %v", err)
 			http.Error(w, "Failed to download image", http.StatusInternalServerError)
 			return
 		}
-		info, err = os.Stat(imagePath)
+		info, err = os.Stat(imgPath)
 		if err != nil {
 			http.Error(w, "Failed to read downloaded image info", http.StatusInternalServerError)
 			return
@@ -62,16 +74,16 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Serve the cached image
-	http.ServeFile(w, r, imagePath)
+	http.ServeFile(w, r, imgPath)
 
 	// If the file is older than 10 minutes, trigger background download for next request
 	if time.Since(info.ModTime()) > 10*time.Minute {
 		log.Println("Image cache is older than 10 minutes. Triggering background update...")
 		go func() {
-			tempPath := imagePath + ".tmp"
+			tempPath := imgPath + ".tmp"
 			if err := downloadImage(tempPath); err == nil {
 				mu.Lock()
-				os.Rename(tempPath, imagePath)
+				os.Rename(tempPath, imgPath)
 				mu.Unlock()
 				log.Println("Image cache updated successfully in background.")
 			} else {
