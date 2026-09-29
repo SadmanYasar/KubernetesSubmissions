@@ -8,3 +8,7 @@ data:
   BACKEND_PORT: "8081"
   IMAGE_URL: "https://picsum.photos/1200"
   IMAGE_PATH: "/app/shared/image.jpg"
+  POSTGRES_HOST: "postgres-svc"
+  POSTGRES_PORT: "5432"
+  POSTGRES_USER: "postgres"
+  POSTGRES_DB: "todos"
