@@ -1,0 +1,67 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: random-todo-cronjob
+  namespace: project
+spec:
+  schedule: "0 * * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: random-todo-cronjob
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: random-todo
+              image: curlimages/curl:8.6.0
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  echo "Fetching random Wikipedia article..."
+                  LOCATION=$(curl -s -I "https://en.wikipedia.org/wiki/Special:Random" | tr -d '\r' | grep -i '^location:' | awk '{print $2}')
+                  
+                  if [ -z "$LOCATION" ]; then
+                    echo "Error: Failed to get Location header from Wikipedia redirect"
+                    exit 1
+                  fi
+
+                  case "$LOCATION" in
+                    //* ) URL="https:${LOCATION}" ;;
+                    http://* | https://* ) URL="${LOCATION}" ;;
+                    /* ) URL="https://en.wikipedia.org${LOCATION}" ;;
+                    * ) URL="${LOCATION}" ;;
+                  esac
+
+                  TODO_TEXT="Read ${URL}"
+                  # Ensure the todo text does not exceed 140 characters
+                  if [ ${#TODO_TEXT} -gt 140 ]; then
+                    TODO_TEXT=$(echo "$TODO_TEXT" | cut -c 1-140)
+                  fi
+
+                  echo "Generated todo: $TODO_TEXT"
+                  echo "Submitting todo to backend service..."
+
+                  # Post todo using JSON payload escaping
+                  PAYLOAD=$(printf '{"text": "%s"}' "$TODO_TEXT")
+                  RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "http://todo-backend-svc:80/todos" \
+                    -H "Content-Type: application/json" \
+                    -d "$PAYLOAD")
+
+                  HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
+                  BODY=$(echo "$RESPONSE" | sed '$d')
+
+                  echo "Response HTTP Status: $HTTP_STATUS"
+                  echo "Response Body: $BODY"
+
+                  if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
+                    echo "Error: Backend returned non-2xx status ($HTTP_STATUS)"
+                    exit 1
+                  fi
+
+                  echo "Successfully added random Wikipedia todo."
